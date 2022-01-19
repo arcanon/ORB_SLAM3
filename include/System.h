@@ -35,7 +35,7 @@
 #include "LoopClosing.h"
 #include "KeyFrameDatabase.h"
 #include "ORBVocabulary.h"
-#include "Viewer.h"
+//#include "Viewer.h"
 #include "ImuTypes.h"
 #include "Config.h"
 
@@ -166,12 +166,16 @@ public:
     std::vector<MapPoint*> GetTrackedMapPoints();
     std::vector<cv::KeyPoint> GetTrackedKeyPointsUn();
 
+    std::vector<MapPoint*> GetAtlasMapPoints();
+
     // For debugging
     double GetTimeFromIMUInit();
     bool isLost();
     bool isFinished();
 
     void ChangeDataset();
+
+    cv::Mat GetCurrentFrame();
 
 #ifdef REGISTER_TIMES
     void InsertRectTime(double& time);
@@ -207,6 +211,7 @@ private:
 
     // The viewer draws the map and the current camera pose. It uses Pangolin.
     Viewer* mpViewer;
+    //void* mpViewer;
 
     FrameDrawer* mpFrameDrawer;
     MapDrawer* mpMapDrawer;

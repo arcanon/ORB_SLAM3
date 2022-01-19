@@ -24,11 +24,12 @@
 #include "KeyFrame.h"
 
 #include <set>
-#include <pangolin/pangolin.h>
+//#include <pangolin/pangolin.h>
 #include <mutex>
 
 #include <boost/serialization/base_object.hpp>
 
+#define GLubyte uint8_t
 
 namespace ORB_SLAM3
 {

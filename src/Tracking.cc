@@ -905,7 +905,7 @@ bool Tracking::ParseCamParamFile(cv::FileStorage &fSettings)
                 static_cast<KannalaBrandt8*>(mpCamera)->mvLappingArea[0] = leftLappingBegin;
                 static_cast<KannalaBrandt8*>(mpCamera)->mvLappingArea[1] = leftLappingEnd;
 
-                mpFrameDrawer->both = true;
+                //mpFrameDrawer->both = true;
 
                 vector<float> vCamCalib2{fx,fy,cx,cy,k1,k2,k3,k4};
                 mpCamera2 = new KannalaBrandt8(vCamCalib2);
@@ -1371,6 +1371,8 @@ cv::Mat Tracking::GrabImageMonocular(const cv::Mat &im, const double &timestamp,
     mCurrentFrame.mNameFile = filename;
     mCurrentFrame.mnDataset = mnNumDataset;
 
+    cout << "frame grabbed wiht keys " << mCurrentFrame.mvKeys.size() << endl;
+
 #ifdef REGISTER_TIMES
     vdORBExtract_ms.push_back(mCurrentFrame.mTimeORB_Ext);
 #endif
@@ -1675,6 +1677,7 @@ void Tracking::Track()
 
     if(mState!=NO_IMAGES_YET)
     {
+        cout << mLastFrame.mTimeStamp << " id last: " << mLastFrame.mnId << " " <<  mCurrentFrame.mTimeStamp  << " id curr: " << mCurrentFrame.mnId << endl;
         if(mLastFrame.mTimeStamp>mCurrentFrame.mTimeStamp)
         {
             cerr << "ERROR: Frame with a timestamp older than previous frame detected!" << endl;
@@ -1685,7 +1688,7 @@ void Tracking::Track()
         }
         else if(mCurrentFrame.mTimeStamp>mLastFrame.mTimeStamp+1.0)
         {
-            cout << "id last: " << mLastFrame.mnId << "    id curr: " << mCurrentFrame.mnId << endl;
+            
             if(mpAtlas->isInertial())
             {
 
@@ -1708,7 +1711,7 @@ void Tracking::Track()
                 }
             }
 
-            return;
+            //return;
         }
     }
 
@@ -1748,7 +1751,7 @@ void Tracking::Track()
     int nMapChangeIndex = pCurrentMap->GetLastMapChange();
     if(nCurMapChangeIndex>nMapChangeIndex)
     {
-        // cout << "Map update detected" << endl;
+        cout << "Map update detected" << endl;
         pCurrentMap->SetLastMapChange(nCurMapChangeIndex);
         mbMapUpdated = true;
     }
@@ -1756,6 +1759,7 @@ void Tracking::Track()
 
     if(mState==NOT_INITIALIZED)
     {
+        cout << "initilizing " << endl;
         if(mSensor==System::STEREO || mSensor==System::RGBD || mSensor==System::IMU_STEREO)
             StereoInitialization();
         else
@@ -1767,6 +1771,7 @@ void Tracking::Track()
 
         if(mState!=OK) // If rightly initialized, mState=OK
         {
+            cout << "state not ok, exit exiting " << endl;
             mLastFrame = Frame(mCurrentFrame);
             return;
         }
@@ -1779,6 +1784,7 @@ void Tracking::Track()
     else
     {
         // System is initialized. Track Frame.
+        cout << "tracking " << endl;
         bool bOK;
 
 #ifdef REGISTER_TIMES
@@ -2052,8 +2058,9 @@ void Tracking::Track()
 
         // Update drawer
         mpFrameDrawer->Update(this);
-        if(!mCurrentFrame.mTcw.empty())
-            mpMapDrawer->SetCurrentCameraPose(mCurrentFrame.mTcw);
+        cout << "state " << mState << endl;
+        //if(!mCurrentFrame.mTcw.empty())
+        //    mpMapDrawer->SetCurrentCameraPose(mCurrentFrame.mTcw);
 
         if(bOK || mState==RECENTLY_LOST)
         {
@@ -2068,8 +2075,8 @@ void Tracking::Track()
             else
                 mVelocity = cv::Mat();
 
-            if(mSensor == System::IMU_MONOCULAR || mSensor == System::IMU_STEREO)
-                mpMapDrawer->SetCurrentCameraPose(mCurrentFrame.mTcw);
+            //if(mSensor == System::IMU_MONOCULAR || mSensor == System::IMU_STEREO)
+                //mpMapDrawer->SetCurrentCameraPose(mCurrentFrame.mTcw);
 
             // Clean VO matches
             for(int i=0; i<mCurrentFrame.N; i++)
@@ -2274,7 +2281,7 @@ void Tracking::StereoInitialization()
 
         mpAtlas->GetCurrentMap()->mvpKeyFrameOrigins.push_back(pKFini);
 
-        mpMapDrawer->SetCurrentCameraPose(mCurrentFrame.mTcw);
+        //mpMapDrawer->SetCurrentCameraPose(mCurrentFrame.mTcw);
 
         mState=OK;
     }
@@ -2286,6 +2293,7 @@ void Tracking::MonocularInitialization()
 
     if(!mpInitializer)
     {
+        cout << "no mpInitializer framesSize " << mCurrentFrame.mvKeys.size() << endl;
         // Set Reference Frame
         if(mCurrentFrame.mvKeys.size()>100)
         {
@@ -2437,6 +2445,7 @@ void Tracking::CreateInitialMapMonocular()
     if(medianDepth<0 || pKFcur->TrackedMapPoints(1)<50) // TODO Check, originally 100 tracks
     {
         Verbose::PrintMess("Wrong initialization, reseting...", Verbose::VERBOSITY_NORMAL);
+        cout << "Wrong initialization, reseting..." << endl;
         mpSystem->ResetActiveMap();
         return;
     }
@@ -2498,7 +2507,7 @@ void Tracking::CreateInitialMapMonocular()
 
     mpAtlas->SetReferenceMapPoints(mvpLocalMapPoints);
 
-    mpMapDrawer->SetCurrentCameraPose(pKFcur->GetPose());
+    //mpMapDrawer->SetCurrentCameraPose(pKFcur->GetPose());
 
     mpAtlas->GetCurrentMap()->mvpKeyFrameOrigins.push_back(pKFini);
 
@@ -3636,12 +3645,14 @@ void Tracking::Reset(bool bLocMap)
 {
     Verbose::PrintMess("System Reseting", Verbose::VERBOSITY_NORMAL);
 
+    /*
     if(mpViewer)
     {
         mpViewer->RequestStop();
         while(!mpViewer->isStopped())
             usleep(3000);
     }
+    */
 
     // Reset Local Mapping
     if (!bLocMap)
@@ -3691,8 +3702,10 @@ void Tracking::Reset(bool bLocMap)
     mpLastKeyFrame = static_cast<KeyFrame*>(NULL);
     mvIniMatches.clear();
 
+    /*
     if(mpViewer)
         mpViewer->Release();
+        */
 
     Verbose::PrintMess("   End reseting! ", Verbose::VERBOSITY_NORMAL);
 }
@@ -3700,12 +3713,14 @@ void Tracking::Reset(bool bLocMap)
 void Tracking::ResetActiveMap(bool bLocMap)
 {
     Verbose::PrintMess("Active map Reseting", Verbose::VERBOSITY_NORMAL);
+    /*
     if(mpViewer)
     {
         mpViewer->RequestStop();
         while(!mpViewer->isStopped())
             usleep(3000);
     }
+    */
 
     Map* pMap = mpAtlas->GetCurrentMap();
 
@@ -3779,8 +3794,8 @@ void Tracking::ResetActiveMap(bool bLocMap)
     mpLastKeyFrame = static_cast<KeyFrame*>(NULL);
     mvIniMatches.clear();
 
-    if(mpViewer)
-        mpViewer->Release();
+    //if(mpViewer)
+    //    mpViewer->Release();
 
     Verbose::PrintMess("   End reseting! ", Verbose::VERBOSITY_NORMAL);
 }
