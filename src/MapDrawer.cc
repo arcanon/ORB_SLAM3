@@ -19,7 +19,7 @@
 #include "MapDrawer.h"
 #include "MapPoint.h"
 #include "KeyFrame.h"
-#include <pangolin/pangolin.h>
+//#include <pangolin/pangolin.h>
 #include <mutex>
 
 namespace ORB_SLAM3
@@ -395,46 +395,46 @@ void MapDrawer::DrawKeyFrames(const bool bDrawKF, const bool bDrawGraph, const b
     }
 }
 
-void MapDrawer::DrawCurrentCamera(pangolin::OpenGlMatrix &Twc)
-{
-    const float &w = mCameraSize;
-    const float h = w*0.75;
-    const float z = w*0.6;
+void MapDrawer::DrawCurrentCamera()//pangolin::OpenGlMatrix &Twc)
+ {
+//     const float &w = mCameraSize;
+//     const float h = w*0.75;
+//     const float z = w*0.6;
 
-    glPushMatrix();
+//     glPushMatrix();
 
-#ifdef HAVE_GLES
-        glMultMatrixf(Twc.m);
-#else
-        glMultMatrixd(Twc.m);
-#endif
+// #ifdef HAVE_GLES
+//         glMultMatrixf(Twc.m);
+// #else
+//         glMultMatrixd(Twc.m);
+// #endif
 
-    glLineWidth(mCameraLineWidth);
-    glColor3f(0.0f,1.0f,0.0f);
-    glBegin(GL_LINES);
-    glVertex3f(0,0,0);
-    glVertex3f(w,h,z);
-    glVertex3f(0,0,0);
-    glVertex3f(w,-h,z);
-    glVertex3f(0,0,0);
-    glVertex3f(-w,-h,z);
-    glVertex3f(0,0,0);
-    glVertex3f(-w,h,z);
+//     glLineWidth(mCameraLineWidth);
+//     glColor3f(0.0f,1.0f,0.0f);
+//     glBegin(GL_LINES);
+//     glVertex3f(0,0,0);
+//     glVertex3f(w,h,z);
+//     glVertex3f(0,0,0);
+//     glVertex3f(w,-h,z);
+//     glVertex3f(0,0,0);
+//     glVertex3f(-w,-h,z);
+//     glVertex3f(0,0,0);
+//     glVertex3f(-w,h,z);
 
-    glVertex3f(w,h,z);
-    glVertex3f(w,-h,z);
+//     glVertex3f(w,h,z);
+//     glVertex3f(w,-h,z);
 
-    glVertex3f(-w,h,z);
-    glVertex3f(-w,-h,z);
+//     glVertex3f(-w,h,z);
+//     glVertex3f(-w,-h,z);
 
-    glVertex3f(-w,h,z);
-    glVertex3f(w,h,z);
+//     glVertex3f(-w,h,z);
+//     glVertex3f(w,h,z);
 
-    glVertex3f(-w,-h,z);
-    glVertex3f(w,-h,z);
-    glEnd();
+//     glVertex3f(-w,-h,z);
+//     glVertex3f(w,-h,z);
+//     glEnd();
 
-    glPopMatrix();
+//     glPopMatrix();
 }
 
 

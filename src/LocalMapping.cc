@@ -67,12 +67,17 @@ void LocalMapping::Run()
 
     while(1)
     {
+        //cout << "local mapping loop imu " << mbBadImu << endl;
+        if (CheckNewKeyFrames()) {
+
+        }
         // Tracking will see that Local Mapping is busy
         SetAcceptKeyFrames(false);
 
         // Check if there are keyframes in the queue
         if(CheckNewKeyFrames() && !mbBadImu)
         {
+            cout << "new key frames going" << endl;
 #ifdef REGISTER_TIMES
             double timeLBA_ms = 0;
             double timeKFCulling_ms = 0;
@@ -123,9 +128,10 @@ void LocalMapping::Run()
 
             if(!CheckNewKeyFrames() && !stopRequested())
             {
+                cout << "new key frames going 2" << endl;
                 if(mpAtlas->KeyFramesInMap()>2)
                 {
-
+                    cout << "new key frames going 3" << endl;
                     if(mbInertial && mpCurrentKeyFrame->GetMap()->isImuInitialized())
                     {
                         float dist = (mpCurrentKeyFrame->mPrevKF->GetCameraCenter() - mpCurrentKeyFrame->GetCameraCenter()).norm() +
@@ -180,6 +186,7 @@ void LocalMapping::Run()
                 // Initialize IMU here
                 if(!mpCurrentKeyFrame->GetMap()->isImuInitialized() && mbInertial)
                 {
+                    cout << "init imu " << endl;
                     if (mbMonocular)
                         InitializeIMU(1e2, 1e10, true);
                     else
@@ -283,6 +290,7 @@ void LocalMapping::Run()
 
 void LocalMapping::InsertKeyFrame(KeyFrame *pKF)
 {
+    cout << "inserting key frame" << endl;
     unique_lock<mutex> lock(mMutexNewKFs);
     mlNewKeyFrames.push_back(pKF);
     mbAbortBA=true;
@@ -1172,8 +1180,10 @@ bool LocalMapping::isFinished()
 
 void LocalMapping::InitializeIMU(float priorG, float priorA, bool bFIBA)
 {
-    if (mbResetRequested)
+    if (mbResetRequested) {
+        cout << "mbResetRequested early out" << endl;
         return;
+    }
 
     float minTime;
     int nMinKF;
@@ -1188,9 +1198,10 @@ void LocalMapping::InitializeIMU(float priorG, float priorA, bool bFIBA)
         nMinKF = 10;
     }
 
-
-    if(mpAtlas->KeyFramesInMap()<nMinKF)
+    if(mpAtlas->KeyFramesInMap()<nMinKF) {
+        cout << "KeyFramesInMap early out" << endl;
         return;
+    }
 
     // Retrieve all keyframe in temporal order
     list<KeyFrame*> lpKF;
@@ -1203,12 +1214,16 @@ void LocalMapping::InitializeIMU(float priorG, float priorA, bool bFIBA)
     lpKF.push_front(pKF);
     vector<KeyFrame*> vpKF(lpKF.begin(),lpKF.end());
 
-    if(vpKF.size()<nMinKF)
+    if(vpKF.size()<nMinKF) {
+        cout << "vpKF early out" << endl;
         return;
+    }
 
     mFirstTs=vpKF.front()->mTimeStamp;
-    if(mpCurrentKeyFrame->mTimeStamp-mFirstTs<minTime)
+    if(mpCurrentKeyFrame->mTimeStamp-mFirstTs<minTime) {
+        cout << "imu time early out" << endl;
         return;
+    }
 
     bInitializing = true;
 

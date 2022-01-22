@@ -21,7 +21,7 @@
 #include "System.h"
 #include "Converter.h"
 #include <thread>
-#include <pangolin/pangolin.h>
+//#include <pangolin/pangolin.h>
 #include <iomanip>
 #include <openssl/md5.h>
 #include <boost/serialization/base_object.hpp>
@@ -183,7 +183,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
 
     //Create Drawers. These are used by the Viewer
     mpFrameDrawer = new FrameDrawer(mpAtlas);
-    mpMapDrawer = new MapDrawer(mpAtlas, strSettingsFile, settings_);
+    mpMapDrawer = nullptr; // new MapDrawer(mpAtlas, strSettingsFile, settings_);
 
     //Initialize the Tracking thread
     //(it will live in the main thread of execution, the one that called this constructor)
@@ -226,6 +226,8 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     //usleep(10*1000*1000);
 
     //Initialize the Viewer thread and launch
+    mpViewer = nullptr;
+    /*
     if(bUseViewer)
     //if(false) // TODO
     {
@@ -235,9 +237,10 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
         mpLoopCloser->mpViewer = mpViewer;
         mpViewer->both = mpFrameDrawer->both;
     }
+    */
 
     // Fix verbosity
-    Verbose::SetTh(Verbose::VERBOSITY_QUIET);
+    Verbose::SetTh(Verbose::VERBOSITY_DEBUG);
 
 }
 
@@ -510,6 +513,11 @@ void System::ResetActiveMap()
 {
     unique_lock<mutex> lock(mMutexReset);
     mbResetActiveMap = true;
+}
+
+cv::Mat System::GetCurrentFrame() 
+{
+    return mpFrameDrawer->DrawFrame(true);
 }
 
 void System::Shutdown()
@@ -1322,6 +1330,12 @@ int System::GetTrackingState()
 {
     unique_lock<mutex> lock(mMutexState);
     return mTrackingState;
+}
+
+vector<MapPoint*> System::GetAtlasMapPoints()
+{
+    unique_lock<mutex> lock(mMutexState);
+    return mpAtlas->GetCurrentMap()->GetAllMapPoints();
 }
 
 vector<MapPoint*> System::GetTrackedMapPoints()
